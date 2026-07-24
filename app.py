@@ -1,68 +1,61 @@
 import streamlit as st
+import pandas as pd
+import joblib
 
-st.title("🚗 Ford Car Price Prediction")
+model = joblib.load("loan_model.pkl")
 
-st.header("Enter Car Details")
+st.set_page_config(page_title="Loan Approval Prediction", layout="wide")
 
-# User Inputs
-model = st.selectbox(
-    "Select Model",
-    ["Fiesta", "Focus", "Kuga", "EcoSport", "Mondeo", "Ka+", "B-Max", "C-Max"]
-)
+st.title("Loan Approval Prediction System")
+st.write("Fill all the details below to predict loan approval.")
 
-year = st.number_input(
-    "Year",
-    min_value=2000,
-    max_value=2026,
-    value=2020
-)
+col1, col2 = st.columns(2)
 
-mileage = st.number_input(
-    "Mileage (Miles)",
-    min_value=0,
-    value=10000
-)
+with col1:
+    age = st.number_input("Age", 18, 70, 30)
+    gender = st.selectbox("Gender", ["Male", "Female"])
+    married = st.selectbox("Marital Status", ["No", "Yes"])
+    education = st.selectbox("Education", ["Graduate", "Not Graduate"])
+    self_employed = st.selectbox("Self Employed", ["No", "Yes"])
+    income = st.number_input("Annual Income", 10000, 1000000, 50000)
 
-engine_size = st.number_input(
-    "Engine Size (Litres)",
-    min_value=0.8,
-    max_value=5.0,
-    value=1.5,
-    step=0.1
-)
+with col2:
+    co_income = st.number_input("Co-Applicant Income", 0, 500000, 0)
+    loan = st.number_input("Loan Amount", 50000, 1000000, 200000)
+    term = st.selectbox("Loan Amount Term (Months)", [60,120,180,240,300,360])
+    credit = st.number_input("Credit Score", 300, 900, 650)
+    property_area = st.selectbox("Property Area", ["Urban", "Semi Urban", "Rural"])
 
-transmission = st.selectbox(
-    "Transmission",
-    ["Manual", "Automatic", "Semi-Auto"]
-)
+st.markdown("---")
 
-fuel_type = st.selectbox(
-    "Fuel Type",
-    ["Petrol", "Diesel", "Hybrid", "Electric"]
-)
+st.subheader("Applicant Information")
 
-tax = st.number_input(
-    "Tax",
-    min_value=0,
-    value=150
-)
+st.write(f"**Age:** {age}")
+st.write(f"**Gender:** {gender}")
+st.write(f"**Marital Status:** {married}")
+st.write(f"**Education:** {education}")
+st.write(f"**Self Employed:** {self_employed}")
+st.write(f"**Annual Income:** ₹{income:,}")
+st.write(f"**Co-Applicant Income:** ₹{co_income:,}")
+st.write(f"**Loan Amount:** ₹{loan:,}")
+st.write(f"**Loan Term:** {term} Months")
+st.write(f"**Credit Score:** {credit}")
+st.write(f"**Property Area:** {property_area}")
 
-mpg = st.number_input(
-    "MPG",
-    min_value=0.0,
-    value=50.0,
-    step=0.1
-)
+if st.button("Predict Loan Approval"):
 
-if st.button("Predict Price"):
-    st.success("Inputs received successfully!")
+    data = pd.DataFrame([[income, credit, loan]],
+                        columns=["Income", "CreditScore", "LoanAmount"])
 
-    st.write("### Entered Details")
-    st.write("Model:", model)
-    st.write("Year:", year)
-    st.write("Mileage:", mileage)
-    st.write("Engine Size:", engine_size)
-    st.write("Transmission:", transmission)
-    st.write("Fuel Type:", fuel_type)
-    st.write("Tax:", tax)
-    st.write("MPG:", mpg)
+    result = model.predict(data)
+
+    st.markdown("---")
+
+    if result[0] == 1:
+        st.success("✅ Congratulations! Loan is likely to be Approved.")
+        st.balloons()
+    else:
+        st.error("❌ Loan is likely to be Rejected.")
+
+st.markdown("---")
+st.info("This prediction is generated using a Machine Learning model and is for educational purposes only.")
